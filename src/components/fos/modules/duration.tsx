@@ -32,7 +32,7 @@ const parseDurationFromMs = (time: number) => {
   return { years, months, weeks, days, hours, minutes, seconds, milliseconds };
 };
 
-const durationToMs = (time: {milliseconds?: number, seconds?: number, minutes?: number, hours?: number, days?: number, weeks?: number, months?: number, years?: number}) => {
+const durationToMs = (time: { milliseconds?: number, seconds?: number, minutes?: number, hours?: number, days?: number, weeks?: number, months?: number, years?: number }) => {
   // turn object into int number of milliseconds
   try {
     const milliseconds = time.milliseconds || 0
@@ -43,7 +43,7 @@ const durationToMs = (time: {milliseconds?: number, seconds?: number, minutes?: 
     const weeks = (time.weeks || 0) * 7 * 24 * 60 * 60 * 1000
     const months = (time.months || 0) * 30 * 24 * 60 * 60 * 1000
     const years = (time.years || 0) * 365 * 24 * 60 * 60 * 1000
-    return milliseconds + seconds + minutes + hours + days + weeks + months + years  
+    return milliseconds + seconds + minutes + hours + days + weeks + months + years
   } catch (e) {
     console.error('Error converting duration to ms', time, e)
     throw e
@@ -51,32 +51,32 @@ const durationToMs = (time: {milliseconds?: number, seconds?: number, minutes?: 
 }
 
 export const durationDisplay = (time: number) => {
-  
+
   const {
     years, months, weeks, days, hours, minutes, seconds, milliseconds
   } = parseDurationFromMs(time)
 
-  const hoursString = `${hours}:`
+  const hoursString = hours < 10 ? `0${hours}` : `${hours}`
   const minutesString = minutes < 10 ? `0${minutes}` : `${minutes}`
   const secondsString = seconds < 10 ? `0${seconds}` : `${seconds}`
   // console.log('durationDisplay', years, months, weeks, days, hours, minutes, seconds, milliseconds)
-  const millisecondsString = !(years || months || weeks || days || hours) ? '' : `.${(milliseconds / 1000).toFixed(3).slice(2)}`
+  // const millisecondsString = !(years || months || weeks || days || hours) ? '' : `.${(milliseconds / 1000).toFixed(3).slice(2)}`
 
-  return `${years ? `${years} yr, ` : ''}${months ? `${months} mo, ` : ''}${weeks ? `${weeks} wk, ` : ''}${days ? `${days} days, `:''} ${hoursString}${minutesString}:${secondsString}${millisecondsString}`
+  return `${years ? `${years} yr, ` : ''}${months ? `${months} mo, ` : ''}${weeks ? `${weeks} wk, ` : ''}${days ? `${days} days, ` : ''} ${hoursString}:${minutesString}:${secondsString}`
 }
 
 
 
-export const DurationInput = ({ 
-  value: time, 
-  onUpdate, 
+export const DurationInput = ({
+  value: time,
+  onUpdate,
   disabled = false,
   ...props
-} : { 
-  value: number, 
+}: {
+  value: number,
   onUpdate: (value: number) => void,
-  disabled?: boolean,  
-} & Partial<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>> ) => {
+  disabled?: boolean,
+} & Partial<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>>) => {
 
 
 
@@ -94,7 +94,7 @@ export const DurationInput = ({
         const containerWidth = containerRef.current.offsetWidth;
         const columnWidth = 60; // Approximate width of each column in pixels
         // console.log('updateVisibleColumns', containerRef.current?.offsetWidth, containerRef.current, Math.floor(containerWidth / columnWidth))
-        setVisibleColumns(Math.floor( (containerWidth - 50) / columnWidth) || 1);
+        setVisibleColumns(Math.floor((containerWidth - 50) / columnWidth) || 1);
       }
     };
 
@@ -135,57 +135,75 @@ export const DurationInput = ({
     { label: 'Days', name: 'days', value: days },
     { label: 'Hours', name: 'hours', value: hours },
     { label: 'Minutes', name: 'minutes', value: minutes },
-    { label: 'Seconds', name: 'seconds', value: seconds },
-    { label: 'Milliseconds', name: 'milliseconds', value: milliseconds}
+    { label: 'Seconds', name: 'seconds', value: seconds }
+    // { label: 'Milliseconds', name: 'milliseconds', value: milliseconds }
   ];
 
+  const mobileInputs = inputs.filter((input) =>
+    ['years', 'minutes', 'seconds'].includes(input.name)
+  );
+
+  const isMobile = window.innerWidth < 800;
+
   return (
-    <div className={props.className || ''} style={{...(props.style || {}), ...{}}}>
-      <div className='flex'>
-        {visibleColumns < (inputs.length -1) && <button onClick={handlePrev} disabled={startIndex === 0}>
-          <ChevronLeft />
-        </button>}
-        <div ref={containerRef} style={{
-          width: 'calc(100% - 20px)'
-        }}>
-          {inputs.slice(startIndex, startIndex + visibleColumns).map(({ label, name, value }) => (
-            <div key={name} className="w-16 text-xs mx-1 inline-block">
-              <label className="block">
-                {label}:
+    <div className={props.className || ''} style={{ ...(props.style || {}) }}>
+      <div className="flex items-center">
+        {isMobile ? (
+          <div className="flex justify-center w-full">
+            {mobileInputs.map(({ label, name, value }) => (
+              <div key={name} className="w-20 text-xs mx-1 flex flex-col items-center">
+                <label className="block mb-1">{label}</label>
                 <input
                   type="number"
                   name={name}
-                  className="w-full text-lg"
+                  className="w-full text-lg text-center border border-gray-300 rounded p-1"
                   value={value}
                   onChange={handleChange}
                   disabled={disabled}
                 />
-              </label>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <>
+            {visibleColumns < inputs.length - 1 && (
+              <button onClick={handlePrev} disabled={startIndex === 0} className="p-2">
+                <ChevronLeft />
+              </button>
+            )}
+            <div ref={containerRef} className="flex-1 overflow-hidden mx-2">
+              <div className="flex justify-center">
+                {inputs
+                  .slice(startIndex, startIndex + visibleColumns)
+                  .map(({ label, name, value }) => (
+                    <div key={name} className="w-20 text-xs mx-1 flex flex-col items-center">
+                      <label className="block mb-1">{label}</label>
+                      <input
+                        type="number"
+                        name={name}
+                        className="w-full text-lg text-center border border-gray-300 rounded p-1"
+                        value={value}
+                        onChange={handleChange}
+                        disabled={disabled}
+                      />
+                    </div>
+                  ))}
+              </div>
             </div>
-          ))}
-        </div>
-        {visibleColumns < (inputs.length) && <button onClick={handleNext} disabled={startIndex + visibleColumns >= inputs.length}>
-          <ChevronRight />
-        </button>}
+            {visibleColumns < inputs.length && (
+              <button onClick={handleNext} disabled={startIndex + visibleColumns >= inputs.length} className="p-2">
+                <ChevronRight />
+              </button>
+            )}
+          </>
+        )}
       </div>
     </div>
-  )
-
-
+  );
+  
 }
 
-
-
-
-
-
-
-const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReactOptions}) => {
-
-
-
-
-
+const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReactOptions }) => {
 
   const durationInfo = getDurationInfo(node)
 
@@ -195,17 +213,17 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
   }) => {
     setDurationInfo(node, value)
   }
-  
+
   const handleMinDurationPath = async () => {
     const newContext = node.setPath({ [node.getNodeData().selectedOption]: durationInfo.minPaths })
   }
-  
+
   const handleMaxDurationPath = async () => {
     const newContext = node.setPath({ [node.getNodeData().selectedOption]: durationInfo.maxPaths })
   }
-  
 
-  
+
+
 
 
   const systemPromptBase = `Take a deep breath.  Please respond only with a single valid JSON object with the optional keys "milliseconds", "seconds", "minutes", "hours", "days", "weeks", "months", or "years" and a number value`
@@ -231,15 +249,15 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
       years?: number
     }
 
-  
-    
-    return { marginal: durationToMs(resultParsed) } 
-  } 
+
+
+    return { marginal: durationToMs(resultParsed) }
+  }
 
 
 
   const handleSuggestDuration = async () => {
-    if (options?.canPromptGPT && options?.promptGPT){
+    if (options?.canPromptGPT && options?.promptGPT) {
       const newContext = await suggestRecursive(options.promptGPT, node, {
         systemPromptBase,
         getUserPromptBase,
@@ -250,10 +268,10 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
         getResourceInfo: getDurationInfo,
         setResourceInfo: setDurationInfo,
         checkResourceInfo: checkDurationInfo,
-      } )
-      if (newContext){
+      })
+      if (newContext) {
         node.context.setNodes(newContext.data.nodes)
-      }else{
+      } else {
         options?.toast && options.toast({
           title: 'Error',
           description: 'No suggestions could be generated',
@@ -262,34 +280,65 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
       }
     } else {
       console.error('No authedApi')
-      const err =  new Error('No authedApi')
+      const err = new Error('No authedApi')
       err.cause = 'unauthorized'
       throw err
     }
   }
 
 
-  return (<div className='w-full text-center overflow-hidden'>
-  <div className='mx-auto items-center justify-center gap-1.5 flex items-center'>
-    <Button variant={"secondary"} className='bg-emerald-900 inline-block w-14' onClick={handleSuggestDuration} title="Get estimated duration"><BrainCircuit /></Button>
-    <DurationInput value={durationInfo.marginal} onUpdate={(value) => handleDurationEdit({marginal: value})} className='' style={{
-      width: 'calc(100% - 4rem)',
-      maxWidth: '600px',
-      display: 'inline-block',
-    }} />
-  </div>
-  <div className='flex flex-row justify-stretch items-center mx-auto' style={{ maxWidth: '600px' }}>
-    <div className='px-3 overflow-hidden w-1/2'>
-      <div title="Time of Currently Selected Path"> Curr: {durationDisplay(durationInfo.current)} </div>
-      <div title="Time of Average Path"> Avg: {durationDisplay(durationInfo.average)} </div>
-    </div>
-    <div className='px-3 overflow-hidden w-1/2'>
-      <Button variant={"secondary"} className='bg-emerald-900 p-1' onClick={handleMinDurationPath} title="Set min duration path"> <div className='w-full'>Min: {durationDisplay(durationInfo.min)} </div></Button>
-      <Button variant={"secondary"} className='bg-emerald-900 p-1' onClick={handleMaxDurationPath} title="Set max duration path"> <div className='w-full'>Max: {durationDisplay(durationInfo.max)} </div></Button>
-    </div>
-  </div>
-  </div>)
+  // return (<div className='w-full text-center overflow-hidden'>
+  //   <div className='mx-auto items-center justify-center gap-1.5 flex items-center'>
+  //     <Button variant={"secondary"} className='bg-emerald-900 inline-block w-14' onClick={handleSuggestDuration} title="Get estimated duration"><BrainCircuit /></Button>
+  //     <DurationInput value={durationInfo.marginal} onUpdate={(value) => handleDurationEdit({ marginal: value })} className='' style={{
+  //       width: 'calc(100% - 4rem)',
+  //       maxWidth: '600px',
+  //       display: 'inline-block',
+  //     }} />
+  //   </div>
+  //   <div className='flex flex-row justify-stretch items-center mx-auto' style={{ maxWidth: '600px' }}>
+  //     <div className='px-3 overflow-hidden w-full'>
+  //       <div title="Time of Currently Selected Path"> Curr: {durationDisplay(durationInfo.current)} </div>
+  //       <div title="Time of Average Path"> Avg: {durationDisplay(durationInfo.average)} </div>
+  //     </div>
+  //     <div className='px-3 overflow-hidden w-full'>
+  //       <Button variant={"secondary"} className='bg-emerald-900 p-1' onClick={handleMinDurationPath} title="Set min duration path"> <div className='w-full'>Min: {durationDisplay(durationInfo.min)} </div></Button>
+  //       <Button variant={"secondary"} className='bg-emerald-900 p-1' onClick={handleMaxDurationPath} title="Set max duration path"> <div className='w-full'>Max: {durationDisplay(durationInfo.max)} </div></Button>
+  //     </div>
+  //   </div>
+  // </div>)
 
+  return (
+    <div className="w-full text-center overflow-hidden">
+      <div className="mx-auto items-center justify-center flex flex-col md:flex-row gap-1.5">
+        <Button variant="secondary" className="bg-emerald-900 w-14 mb-2 md:mb-0" onClick={handleSuggestDuration} title="Get estimated duration">
+          <BrainCircuit />
+        </Button>
+        <DurationInput
+          value={durationInfo.marginal}
+          onUpdate={(value) => handleDurationEdit({ marginal: value })}
+          className=""
+          style={{ width: '100%', maxWidth: '600px' }}
+        />
+      </div>
+      <div className="flex flex-col md:flex-row justify-center mx-auto max-w-screen-lg" style={{ maxWidth: '600px' }}>
+        <div className="px-3 overflow-hidden w-full md:w-1/2 mb-4 md:mb-0">
+          <div title="Time of Currently Selected Path"> Curr: {durationDisplay(durationInfo.current)} </div>
+          <div title="Time of Average Path"> Avg: {durationDisplay(durationInfo.average)} </div>
+        </div>
+        <div className="px-3 overflow-hidden w-full md:w-1/2 flex justify-center">
+          <div className="flex flex-col md:flex-row justify-center items-center">
+            <Button variant="secondary" className="bg-emerald-900 p-1 mr-0 md:mr-2 mb-2 md:mb-0" onClick={handleMinDurationPath} title="Set min duration path">
+              Min: {durationDisplay(durationInfo.min)}
+            </Button>
+            <Button variant="secondary" className="bg-emerald-900 p-1" onClick={handleMaxDurationPath} title="Set max duration path">
+              Max: {durationDisplay(durationInfo.max)}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
 
 
@@ -317,16 +366,16 @@ export const getDurationInfo = (thisNode: FosNode, index?: number): DurationInfo
   // get selected option
 
   // for each child
-    // get min (+ marginal)
-    // get max (+ marginal)
-    // get avg (+ marginal)
-    // get current (+ marginal)
-    // get min paths
-    // get max paths
-  
+  // get min (+ marginal)
+  // get max (+ marginal)
+  // get avg (+ marginal)
+  // get current (+ marginal)
+  // get min paths
+  // get max paths
 
 
-    
+
+
   const children = thisNode.getChildren(indexToGet)
 
   const thisNodeOptionContent = thisNode.getOptionContent(indexToGet)
@@ -336,7 +385,7 @@ export const getDurationInfo = (thisNode: FosNode, index?: number): DurationInfo
 
 
 
-  if (children.length === 0){
+  if (children.length === 0) {
     return {
       min: thisNodeDuration,
       max: thisNodeDuration,
@@ -359,7 +408,7 @@ export const getDurationInfo = (thisNode: FosNode, index?: number): DurationInfo
       const childData = child.getNodeData()
       const childOptions = childData.options
 
-  
+
       let minOptionDuration = Number.MAX_SAFE_INTEGER;
       let maxOptionDuration = Number.MIN_SAFE_INTEGER;
       const minOptionPaths: SelectionPath = {};
@@ -367,24 +416,24 @@ export const getDurationInfo = (thisNode: FosNode, index?: number): DurationInfo
       let avgOptionDuration = 0;
       let currentOptionDuration = 0;
 
-      childOptions.forEach( (option, j) => {
+      childOptions.forEach((option, j) => {
         const childOptionDurationInfo = getDurationInfo(child, j)
-        if (childOptionDurationInfo.min < minOptionDuration){
+        if (childOptionDurationInfo.min < minOptionDuration) {
           minOptionDuration = childOptionDurationInfo.min
           minOptionPaths[j] = childOptionDurationInfo.minPaths
         }
-        if (childOptionDurationInfo.max > maxOptionDuration){
+        if (childOptionDurationInfo.max > maxOptionDuration) {
           maxOptionDuration = childOptionDurationInfo.max
           maxOptionPaths[j] = childOptionDurationInfo.maxPaths
         }
         avgOptionDuration = ((avgOptionDuration * j) + childOptionDurationInfo.average) / (j + 1)
-        if (j === childData.selectedOption){
+        if (j === childData.selectedOption) {
           currentOptionDuration = childOptionDurationInfo.current
         }
       })
       min += minOptionDuration
       max += maxOptionDuration
-      average += avgOptionDuration 
+      average += avgOptionDuration
       current += currentOptionDuration
     });
 
@@ -398,7 +447,7 @@ export const getDurationInfo = (thisNode: FosNode, index?: number): DurationInfo
       marginal: thisNodeDuration
     }
 
-    
+
   }
 
 
