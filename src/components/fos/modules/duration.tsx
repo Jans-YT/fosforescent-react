@@ -128,6 +128,7 @@ export const DurationInput = ({
     onUpdate(durationToMs(newTime))
   }
 
+
   const inputs = [
     { label: 'Years', name: 'years', value: years },
     { label: 'Months', name: 'months', value: months },
@@ -139,9 +140,11 @@ export const DurationInput = ({
     // { label: 'Milliseconds', name: 'milliseconds', value: milliseconds }
   ];
 
-  const mobileInputs = inputs.filter((input) =>
-    ['years', 'minutes', 'seconds'].includes(input.name)
+  const mobileInputs = inputs.filter(input =>
+    input.name === 'months' || input.name === 'weeks' || input.name === 'days' ||
+    input.name === 'hours' || input.name === 'minutes' || input.name === 'seconds'
   );
+
 
   const isMobile = window.innerWidth < 800;
 
@@ -149,9 +152,9 @@ export const DurationInput = ({
     <div className={props.className || ''} style={{ ...(props.style || {}) }}>
       <div className="flex items-center">
         {isMobile ? (
-          <div className="flex justify-center w-full">
-            {mobileInputs.map(({ label, name, value }) => (
-              <div key={name} className="w-20 text-xs mx-1 flex flex-col items-center">
+          <div className="flex flex-wrap justify-center w-full">
+            {mobileInputs.map(({ label, name, value }, index) => (
+              <div key={name} className={`w-1/4 text-xs mx-1 flex flex-col items-center ${index >= 3 ? 'mt-2' : ''}`}>
                 <label className="block mb-1">{label}</label>
                 <input
                   type="number"
@@ -200,7 +203,7 @@ export const DurationInput = ({
       </div>
     </div>
   );
-  
+
 }
 
 const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReactOptions }) => {
